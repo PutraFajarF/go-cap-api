@@ -97,3 +97,22 @@ func getNextID() int {
 
 	return cust.ID + 1
 }
+
+func updatedCustomer(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	customerId, err := strconv.Atoi(vars["customer_id"])
+	if err != nil {
+		fmt.Println("Unable to convert to string")
+	}
+
+	var updatedCustomer Customer
+	json.NewDecoder(r.Body).Decode(&updatedCustomer)
+	for k, v := range customers {
+		if v.ID == customerId {
+			customers = append(customers[:k], customers[k+1:]...)
+			customers = append(customers, updatedCustomer)
+		}
+	}
+	json.NewEncoder(w).Encode(customers)
+	w.WriteHeader(http.StatusOK)
+}
