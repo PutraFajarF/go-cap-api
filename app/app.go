@@ -3,11 +3,11 @@ package app
 import "net/http"
 
 func Start() {
-
+	mux := http.NewServeMux()
 	// * defining routes
-	http.HandleFunc("/greet", greet)
-	http.HandleFunc("/customers", getCustomers)
+	mux.HandleFunc("/greet", greet)
+	mux.HandleFunc("/customers", getCustomers)
 
 	// * starting the server
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe(":8080", mux)
 }
