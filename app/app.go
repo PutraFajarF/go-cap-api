@@ -11,7 +11,8 @@ func Start() {
 	// * defining routes
 	mux.HandleFunc("/greet", greet).Methods(http.MethodGet)
 	mux.HandleFunc("/customers", getCustomers).Methods(http.MethodGet)
-	mux.HandleFunc("/customers/{customer_id}", getCustomer).Methods(http.MethodGet)
+	mux.HandleFunc("/customers", addCustomer).Methods(http.MethodPost)
+	mux.HandleFunc("/customers/{customer_id:[0-9]+}", getCustomer).Methods(http.MethodGet)
 
 	// * starting the server
 	http.ListenAndServe(":8080", mux)
