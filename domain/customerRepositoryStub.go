@@ -1,9 +1,11 @@
 package domain
 
+// define struct
 type CustomerRepositoryStub struct {
 	Customer []Customer
 }
 
+// define method
 func (s CustomerRepositoryStub) FindAll() ([]Customer, error) {
 	return s.Customer, nil
 }
