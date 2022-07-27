@@ -7,23 +7,41 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type CustomerRepositoryDB struct{}
+type CustomerRepositoryDB struct {
+	client *sql.DB
+}
 
 // Create constructor
 func NewCustomerRepositoryDB() CustomerRepositoryDB {
-	return CustomerRepositoryDB{}
-}
-
-func (d CustomerRepositoryDB) FindAll() ([]Customer, error) {
+	// In development mode postgreSQL, sslmode setting to disable instead of verify-full
 	connStr := "postgres://postgres:ktl123@localhost/banking_cap?sslmode=disable"
 	db, err := sql.Open("postgres", connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
+	return CustomerRepositoryDB{db}
+}
+
+func (d CustomerRepositoryDB) FindByID(customerID string) (*Customer, error) {
+	query := "select * from customers where customer_id = $1"
+
+	row := d.client.QueryRow(query, customerID)
+
+	var c Customer
+	err := row.Scan(&c.ID, &c.Name, &c.DateOfBirth, &c.City, &c.ZipCode, &c.Status)
+	if err != nil {
+		log.Println("error scanning customer data", err.Error())
+		return nil, err
+	}
+	// untuk balikin nilai struct pakai pointer
+	return &c, nil
+}
+
+func (d CustomerRepositoryDB) FindAll() ([]Customer, error) {
 
 	query := "select * from customers"
 
-	rows, err := db.Query(query)
+	rows, err := d.client.Query(query)
 	if err != nil {
 		log.Println("error query data to customer table", err.Error())
 		return nil, err
@@ -36,6 +54,7 @@ func (d CustomerRepositoryDB) FindAll() ([]Customer, error) {
 		err := rows.Scan(&c.ID, &c.Name, &c.DateOfBirth, &c.City, &c.ZipCode, &c.Status)
 		if err != nil {
 			log.Println("error scanning customer data", err.Error())
+			return nil, err
 		}
 		customers = append(customers, c)
 	}

@@ -4,7 +4,10 @@ import (
 	"capi/service"
 	"encoding/json"
 	"encoding/xml"
+	"fmt"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 // var customers []Customer = []Customer{
@@ -39,38 +42,44 @@ func (ch *CustomerHandler) getAllCustomers(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-// func getCustomer(w http.ResponseWriter, r *http.Request) {
-// 	// Untuk mengambil ID, get route variable
-// 	vars := mux.Vars(r)
-// 	customerId := vars["customer_id"]
+func (ch *CustomerHandler) getCustomerByID(w http.ResponseWriter, r *http.Request) {
+	// Untuk mengambil ID, get route variable
+	vars := mux.Vars(r)
+	customerId := vars["customer_id"]
+	customer, err := ch.service.GetCustomerByID(customerId)
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, err.Error())
+		return
+	}
 
-// 	// Convert string to int
-// 	id, err := strconv.Atoi(customerId)
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		fmt.Fprint(w, "invalid customer id")
-// 		return
-// 	}
+	// Convert string to int
+	// id, err := strconv.Atoi(customerId)
+	// if err != nil {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	fmt.Fprint(w, "invalid customer id")
+	// 	return
+	// }
 
-// 	// Searching customer data
-// 	var cust Customer
+	// Searching customer data
+	// var cust Customer
 
-// 	for _, data := range customers {
-// 		if data.ID == id {
-// 			cust = data
-// 		}
-// 	}
+	// for _, data := range customers {
+	// 	if data.ID == id {
+	// 		cust = data
+	// 	}
+	// }
 
-// 	if cust.ID == 0 {
-// 		w.WriteHeader(http.StatusNotFound)
-// 		fmt.Fprint(w, "customer data not found")
-// 		return
-// 	}
+	// if cust.ID == 0 {
+	// 	w.WriteHeader(http.StatusNotFound)
+	// 	fmt.Fprint(w, "customer data not found")
+	// 	return
+	// }
 
-// 	// Return customer data
-// 	w.Header().Add("Content-Type", "application/json")
-// 	json.NewEncoder(w).Encode(cust)
-// }
+	// Return customer data
+	w.Header().Add("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(customer)
+}
 
 // func addCustomer(w http.ResponseWriter, r *http.Request) {
 // 	// decode request body
