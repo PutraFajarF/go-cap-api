@@ -99,14 +99,15 @@ func getNextID() int {
 }
 
 func updatedCustomer(w http.ResponseWriter, r *http.Request) {
+	// Untuk mengambil ID, get route variable
 	vars := mux.Vars(r)
 	customerId, err := strconv.Atoi(vars["customer_id"])
 	if err != nil {
 		fmt.Println("Unable to convert to string")
 	}
 
+	// decode request body, parse data dari bodynya
 	var updatedCustomer Customer
-
 	json.NewDecoder(r.Body).Decode(&updatedCustomer)
 
 	for i, c := range customers {
