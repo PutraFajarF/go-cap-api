@@ -28,11 +28,9 @@ func NewCustomerRepositoryDB() CustomerRepositoryDB {
 func (d CustomerRepositoryDB) FindByID(customerID string) (*Customer, *errs.AppErr) {
 	query := "select * from customers where customer_id = $1"
 
-	// row := d.client.QueryRow(query, customerID)
-
 	var c Customer
+
 	err := d.client.Get(&c, query, customerID)
-	// err := row.Scan(&c.ID, &c.Name, &c.DateOfBirth, &c.City, &c.ZipCode, &c.Status)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Error("error customer data not found" + err.Error())
@@ -46,25 +44,43 @@ func (d CustomerRepositoryDB) FindByID(customerID string) (*Customer, *errs.AppE
 	return &c, nil
 }
 
-func (d CustomerRepositoryDB) FindAll() ([]Customer, *errs.AppErr) {
-	query := "select * from customers"
+func (d CustomerRepositoryDB) FindAll(status string) ([]Customer, *errs.AppErr) {
 	var e []Customer
-	err := d.client.Select(&e, query)
-	if err != nil {
-		log.Println("error query data to customer table", err.Error())
-		return nil, errs.NewUnexpectedError("unexpected database error")
+
+	if status == "" {
+		query := "select * from customers"
+		err := d.client.Select(&e, query)
+		if err != nil {
+			log.Println("error query data to customer table", err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
+	} else {
+		if status == "active" {
+			status = "1"
+			query := "select * from customers where status = $1"
+			err := d.client.Select(&e, query, status)
+			if err != nil {
+				log.Println("error query data to customer table", err.Error())
+				return nil, errs.NewNotFoundError("customer data not found")
+			}
+		} else if status == "inactive" {
+			status = "0"
+			query := "select * from customers where status = $1"
+			err := d.client.Select(&e, query, status)
+			if err != nil {
+				log.Println("error query data to customer table", err.Error())
+				return nil, errs.NewNotFoundError("customer data not found")
+			}
+			// conditional statement jika query string mencari selain ?status=active atau ?status=inactive maka akan menghasilkan error 404 not found
+		} else {
+			query := "select * from customers where status = $1"
+			err := d.client.Select(&e, query)
+			if err != nil {
+				log.Println("error query data to customer table", err.Error())
+				return nil, errs.NewNotFoundError("customer data not found")
+			}
+		}
 	}
 
-	// var customers []Customer
-	// // Untuk proses setiap data yg masuk dari DB
-	// for data.Next() {
-	// 	var c Customer
-	// 	err := data.Select(&c)
-	// 	if err != nil {
-	// 		log.Println("error scanning customer data", err.Error())
-	// 		return nil, err
-	// 	}
-	// 	customers = append(customers, c)
-	// }
 	return e, nil
 }

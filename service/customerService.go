@@ -7,7 +7,7 @@ import (
 )
 
 type CustomerService interface {
-	GetAllCustomer() ([]dto.CustomerResponse, *errs.AppErr)
+	GetAllCustomer(string) ([]dto.CustomerResponse, *errs.AppErr)
 	GetCustomerByID(string) (*dto.CustomerResponse, *errs.AppErr)
 }
 
@@ -15,13 +15,11 @@ type DefaultCustomerService struct {
 	repository domain.CustomerRepository
 }
 
-func (s DefaultCustomerService) GetAllCustomer() ([]dto.CustomerResponse, *errs.AppErr) {
+func (s DefaultCustomerService) GetAllCustomer(status string) ([]dto.CustomerResponse, *errs.AppErr) {
 	// * add process here
-	custs, err := s.repository.FindAll()
+	custs, err := s.repository.FindAll(status)
 	if err != nil {
 		return nil, err
-		// logger.Error("error scanning customer data")
-		// return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
 	var response []dto.CustomerResponse
