@@ -1,5 +1,7 @@
 package domain
 
+import "capi/errs"
+
 type Customer struct {
 	// untuk merubah key tampilan di json maupun xml dari prefix huruf besar menjadi huruf kecil
 	ID          string `json:"id" xml:"id"`
@@ -12,5 +14,5 @@ type Customer struct {
 
 type CustomerRepository interface {
 	FindAll() ([]Customer, error)
-	FindByID(string) (*Customer, error)
+	FindByID(string) (*Customer, *errs.AppErr)
 }
