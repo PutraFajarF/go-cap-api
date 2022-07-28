@@ -56,8 +56,9 @@ func (ch *CustomerHandler) getCustomerByID(w http.ResponseWriter, r *http.Reques
 }
 
 func writeResponse(w http.ResponseWriter, code int, data interface{}) {
-	w.WriteHeader(code)
+	// set Header terlebih dahulu baru writeHeadernya, jika terbalik WriteHeader akan lock header dengan setting text/plain
 	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(data)
 }
 
