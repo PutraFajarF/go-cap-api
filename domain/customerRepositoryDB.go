@@ -46,26 +46,25 @@ func (d CustomerRepositoryDB) FindByID(customerID string) (*Customer, *errs.AppE
 	return &c, nil
 }
 
-func (d CustomerRepositoryDB) FindAll() ([]Customer, error) {
-
+func (d CustomerRepositoryDB) FindAll() ([]Customer, *errs.AppErr) {
 	query := "select * from customers"
-
-	rows, err := d.client.Query(query)
+	var e []Customer
+	err := d.client.Select(&e, query)
 	if err != nil {
 		log.Println("error query data to customer table", err.Error())
-		return nil, err
+		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
-	var customers []Customer
-	// Untuk proses setiap data yg masuk dari DB
-	for rows.Next() {
-		var c Customer
-		err := rows.Scan(&c.ID, &c.Name, &c.DateOfBirth, &c.City, &c.ZipCode, &c.Status)
-		if err != nil {
-			log.Println("error scanning customer data", err.Error())
-			return nil, err
-		}
-		customers = append(customers, c)
-	}
-	return customers, nil
+	// var customers []Customer
+	// // Untuk proses setiap data yg masuk dari DB
+	// for data.Next() {
+	// 	var c Customer
+	// 	err := data.Select(&c)
+	// 	if err != nil {
+	// 		log.Println("error scanning customer data", err.Error())
+	// 		return nil, err
+	// 	}
+	// 	customers = append(customers, c)
+	// }
+	return e, nil
 }

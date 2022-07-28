@@ -3,7 +3,6 @@ package app
 import (
 	"capi/service"
 	"encoding/json"
-	"encoding/xml"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -24,21 +23,24 @@ type CustomerHandler struct {
 }
 
 func (ch *CustomerHandler) getAllCustomers(w http.ResponseWriter, r *http.Request) {
-	// fmt.Fprint(w, "get customer endpoint")
-
-	customers, _ := ch.service.GetAllCustomer()
-	// Request Header
-	if r.Header.Get("Content-Type") == "application/xml" {
-		// Response Header
-		w.Header().Add("Content-Type", "application/xml")
-		// Marshaling data structure to XML representation
-		xml.NewEncoder(w).Encode(customers)
-	} else {
-		// Response Header
-		w.Header().Add("Content-Type", "application/json")
-		// Marshaling data structure to JSON Representation
-		json.NewEncoder(w).Encode(customers)
+	customers, err := ch.service.GetAllCustomer()
+	if err != nil {
+		writeResponse(w, err.Code, err.AsMessage())
+		return
 	}
+	writeResponse(w, http.StatusOK, customers)
+	// Request Header
+	// if r.Header.Get("Content-Type") == "application/xml" {
+	// 	// Response Header
+	// 	w.Header().Add("Content-Type", "application/xml")
+	// 	// Marshaling data structure to XML representation
+	// 	xml.NewEncoder(w).Encode(customers)
+	// } else {
+	// 	// Response Header
+	// 	w.Header().Add("Content-Type", "application/json")
+	// 	// Marshaling data structure to JSON Representation
+	// 	json.NewEncoder(w).Encode(customers)
+	// }
 }
 
 func (ch *CustomerHandler) getCustomerByID(w http.ResponseWriter, r *http.Request) {
