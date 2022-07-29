@@ -61,7 +61,7 @@ func (d CustomerRepositoryDB) FindAll(status string) ([]Customer, *errs.AppErr) 
 			err := d.client.Select(&e, query, status)
 			if err != nil {
 				log.Println("error query data to customer table", err.Error())
-				return nil, errs.NewNotFoundError("customer data not found")
+				return nil, errs.NewUnexpectedError("unexpected database error")
 			}
 		} else if status == "inactive" {
 			status = "0"
@@ -69,7 +69,7 @@ func (d CustomerRepositoryDB) FindAll(status string) ([]Customer, *errs.AppErr) 
 			err := d.client.Select(&e, query, status)
 			if err != nil {
 				log.Println("error query data to customer table", err.Error())
-				return nil, errs.NewNotFoundError("customer data not found")
+				return nil, errs.NewUnexpectedError("unexpected database error")
 			}
 			// conditional statement jika query string mencari selain ?status=active atau ?status=inactive maka akan menghasilkan error 404 not found
 		} else {
