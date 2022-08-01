@@ -121,6 +121,7 @@ func authMiddleware(next http.Handler) http.Handler {
 		// split token -> ambil tokennya buang "Bearer" nya
 		// parsing token, err := jwt.Parse()
 		// Check token validation
+
 		logger.Info(token)
 		next.ServeHTTP(w, r)
 	})
