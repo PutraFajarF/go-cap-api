@@ -18,7 +18,7 @@ func NewAuthRepositoryDB(db *sqlx.DB) AuthRepositoryDB {
 
 func (d AuthRepositoryDB) FindBy(username, password string) (*Login, *errs.AppErr) {
 	query := `SELECT username, u.customer_id, role, string_agg(a.account_id::varchar(255), ',') as account_numbers FROM users u
-				LEFT JOIN accounts a ON a.customer_id = u.customer_id
+					LEFT JOIN accounts a ON a.customer_id = u.customer_id
   				WHERE username = $1 and password = $2
   				GROUP BY username, a.customer_id, role`
 

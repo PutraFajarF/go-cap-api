@@ -4,11 +4,15 @@ import (
 	"capi/domain"
 	"capi/logger"
 	"capi/service"
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
@@ -116,13 +120,52 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		next.ServeHTTP(w, r)
 		token := r.Header.Get("Authorization")
 
-		// split token -> ambil tokennya buang "Bearer" nya
-		// parsing token, err := jwt.Parse()
-		// Check token validation
+		if len(token) == 0 {
+			err := errors.New("authorization header is not provided")
+			fmt.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("authorization header is not provided"))
+		}
 
-		logger.Info(token)
-		next.ServeHTTP(w, r)
-	})
-}
+		fields := strings.Fields(token)
+		if len(fields) < 2 {
+			err := errors.New("invalid authorization header format")
+			fmt.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("invalid authorization header format"))
+		}
+
+		authorizationType := strings.ToLower(fields[0])
+		if authorizationType != "bearer" {
+			err := fmt.Errorf("unsupported authorization type %s", authorizationType)
+			fmt.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("unsupported authorization type"))
+		}
+
+		accessToken := fields[1]
+		token, err := jwt.Parse(accessToken, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte("rahasia"), nil
+		})
+
+		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+			ctx := context.WithValue(r.Context(), "props", claims)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			fmt.Println(err)
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Unauthorized"))
+		}
+	}
+)}
+
+// split token -> ambil tokennya buang "Bearer" nya
+
+// parsing token, err := jwt.Parse()
+// Check token validation
