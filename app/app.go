@@ -1,17 +1,5 @@
 package app
 
-<<<<<<< HEAD
-import "net/http"
-
-func Start() {
-
-	// * defining routes
-	http.HandleFunc("/greet", greet)
-	http.HandleFunc("/customers", getCustomers)
-
-	// * starting the server
-	http.ListenAndServe(":8080", nil)
-=======
 import (
 	"capi/domain"
 	"capi/logger"
@@ -104,5 +92,4 @@ func getClientDB() *sqlx.DB {
 	logger.Info("success connect to database...")
 
 	return db
->>>>>>> 461e7c8e2f334a2474170b97206260784828e3cd
 }
