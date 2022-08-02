@@ -4,14 +4,25 @@ import (
 	"capi/domain"
 	"capi/logger"
 	"capi/service"
+	"context"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
+)
+
+type key int
+
+const (
+	userInfo key = iota
+	test
+	test2
 )
 
 func sanityCheck() {
@@ -116,13 +127,37 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		token := r.Header.Get("Authorization")
+		initToken := r.Header.Get("Authorization")
+		if len(initToken) == 0 {
+			writeResponse(w, http.StatusUnauthorized, "Authorization header is not provided")
+			return
+		}
 
 		// split token -> ambil tokennya buang "Bearer" nya
-		// parsing token, err := jwt.Parse()
-		// Check token validation
+		authHeader := strings.Split(initToken, "Bearer ")
+		if len(authHeader) != 2 {
+			fmt.Println("Authorization header is not provided")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte("Authorization header is not provided"))
+		} else {
+			// parsing token, err := jwt.Parse()
+			jwtToken := authHeader[1]
+			token, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+				return []byte("rahasia"), nil
+			})
 
-		logger.Info(token)
-		next.ServeHTTP(w, r)
+			if err != nil {
+				writeResponse(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+
+			// Check token validation
+			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+				ctx := context.WithValue(r.Context(), userInfo, claims)
+				next.ServeHTTP(w, r.WithContext(ctx))
+			} else {
+				writeResponse(w, http.StatusUnauthorized, err.Error())
+			}
+		}
 	})
 }
