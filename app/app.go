@@ -2,6 +2,7 @@ package app
 
 import (
 	"capi/domain"
+<<<<<<< HEAD
 	"capi/logger"
 	"capi/service"
 	"fmt"
@@ -9,11 +10,36 @@ import (
 	"os"
 	"time"
 
+=======
+	"capi/errs"
+	"capi/logger"
+	"capi/service"
+	"context"
+	"fmt"
+	"net/http"
+	"os"
+	"strings"
+	"time"
+
+	"github.com/golang-jwt/jwt/v4"
+>>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
 
+<<<<<<< HEAD
+=======
+type key int
+
+const (
+	userInfo key = iota
+	test
+	test2
+	// ...
+)
+
+>>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 func sanityCheck() {
 	envProps := []string{
 		"SERVER_ADDRESS",
@@ -65,10 +91,15 @@ func Start() {
 
 	// * create ServeMux
 	mux := mux.NewRouter()
+<<<<<<< HEAD
+=======
+	mux.Use(loggingMiddleware)
+>>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 
 	authR := mux.PathPrefix("/auth").Subrouter()
 	authR.HandleFunc("/login", authH.Login).Methods(http.MethodPost)
 
+<<<<<<< HEAD
 	authR.Use(loggingMiddleware)
 	// * defining routes
 	// mux.HandleFunc("/auth/login", authH.Login).Methods(http.MethodPost)
@@ -82,6 +113,23 @@ func Start() {
 
 	// * starting the server
 
+=======
+	// * defining routes
+	// mux.HandleFunc("/auth/login", authH.Login).Methods(http.MethodPost)
+
+	customerR := mux.PathPrefix("/customers").Subrouter()
+	customerR.HandleFunc("/{customer_id:[0-9]+}", ch.getCustomerByID).Methods(http.MethodGet)
+	customerR.HandleFunc("/{customer_id:[0-9]+}/accounts/{account_id:[0-9]+}", ah.MakeTransaction).Methods(http.MethodPost)
+	customerR.Use(authMiddleware)
+
+	adminR := mux.PathPrefix("/customers").Subrouter()
+	adminR.HandleFunc("", ch.getAllCustomers).Methods(http.MethodGet)
+	adminR.HandleFunc("/{customer_id:[0-9]+}/accounts", ah.NewAccount).Methods(http.MethodPost)
+	adminR.Use(authMiddleware)
+	adminR.Use(isAdminMiddleware)
+
+	// * starting the server
+>>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 	serverAddr := os.Getenv("SERVER_ADDRESS")
 	serverPort := os.Getenv("SERVER_PORT")
 
@@ -116,6 +164,7 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+<<<<<<< HEAD
 		token := r.Header.Get("Authorization")
 
 		// split token -> ambil tokennya buang "Bearer" nya
@@ -123,6 +172,90 @@ func authMiddleware(next http.Handler) http.Handler {
 		// Check token validation
 
 		logger.Info(token)
+=======
+
+		// get token from header
+		authorizationHeader := r.Header.Get("Authorization")
+		if !strings.Contains(authorizationHeader, "Bearer") {
+			appErr := errs.NewBadRequestError("invalid token")
+			writeResponse(w, appErr.Code, appErr.AsMessage())
+			return
+		}
+
+		// split token
+		tokenString := strings.Replace(authorizationHeader, "Bearer ", "", -1)
+
+		// parse token with claim
+		token, err := jwt.ParseWithClaims(tokenString, &domain.AccessTokenClaims{}, func(token *jwt.Token) (interface{}, error) {
+			// token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+			if method, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("signing method invalid")
+			} else if method != jwt.SigningMethodHS256 {
+				return nil, fmt.Errorf("signing method invalid")
+			}
+
+			return []byte("rahasia"), nil
+		})
+
+		if err != nil {
+			appErr := errs.NewBadRequestError(err.Error())
+			writeResponse(w, appErr.Code, appErr.AsMessage())
+			return
+		}
+
+		claims, ok := token.Claims.(*domain.AccessTokenClaims)
+		// claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok || !token.Valid {
+			appErr := errs.NewBadRequestError("invalid token")
+			writeResponse(w, appErr.Code, appErr.AsMessage())
+			return
+		}
+
+		if claims.Role == "user" {
+			vars := mux.Vars(r)
+			customerID := vars["customer_id"]
+			accountID := vars["account_id"]
+
+			if claims.CustomerID != customerID {
+				appErr := errs.NewForbiddenError("don'thave access to this resource")
+				writeResponse(w, appErr.Code, appErr.AsMessage())
+				return
+			}
+
+			if accountID != "" {
+				var isValidAccountID bool
+				for _, a := range claims.Accounts {
+					if a == accountID {
+						isValidAccountID = true
+					}
+				}
+				if !isValidAccountID {
+					appErr := errs.NewForbiddenError("don'thave access to this resource")
+					writeResponse(w, appErr.Code, appErr.AsMessage())
+					return
+				}
+			}
+
+		}
+
+		ctx := context.WithValue(r.Context(), userInfo, claims)
+		r = r.WithContext(ctx)
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func isAdminMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context().Value(userInfo).(*domain.AccessTokenClaims)
+
+		if ctx.Role != "admin" {
+			appErr := errs.NewForbiddenError("don't have enough permission")
+			writeResponse(w, appErr.Code, appErr.AsMessage())
+			return
+		}
+
+>>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 		next.ServeHTTP(w, r)
 	})
 }
