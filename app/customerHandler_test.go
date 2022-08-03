@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// from mockCustomerService.go that utilize gomock library
 var mockService *service.MockCustomerService
 var ch CustomerHandlers
 var router *mux.Router
