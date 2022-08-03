@@ -49,8 +49,6 @@ func NewAuthenticationError(message string) *AppErr {
 		Message: message,
 	}
 }
-<<<<<<< HEAD
-=======
 
 func NewForbiddenError(message string) *AppErr {
 	return &AppErr{
@@ -58,4 +56,3 @@ func NewForbiddenError(message string) *AppErr {
 		Message: message,
 	}
 }
->>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9

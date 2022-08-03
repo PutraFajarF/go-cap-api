@@ -2,15 +2,6 @@ package app
 
 import (
 	"capi/domain"
-<<<<<<< HEAD
-	"capi/logger"
-	"capi/service"
-	"fmt"
-	"net/http"
-	"os"
-	"time"
-
-=======
 	"capi/errs"
 	"capi/logger"
 	"capi/service"
@@ -22,14 +13,11 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
->>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
 	"github.com/joho/godotenv"
 )
 
-<<<<<<< HEAD
-=======
 type key int
 
 const (
@@ -39,7 +27,6 @@ const (
 	// ...
 )
 
->>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 func sanityCheck() {
 	envProps := []string{
 		"SERVER_ADDRESS",
@@ -91,29 +78,11 @@ func Start() {
 
 	// * create ServeMux
 	mux := mux.NewRouter()
-<<<<<<< HEAD
-=======
 	mux.Use(loggingMiddleware)
->>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 
 	authR := mux.PathPrefix("/auth").Subrouter()
 	authR.HandleFunc("/login", authH.Login).Methods(http.MethodPost)
 
-<<<<<<< HEAD
-	authR.Use(loggingMiddleware)
-	// * defining routes
-	// mux.HandleFunc("/auth/login", authH.Login).Methods(http.MethodPost)
-
-	mux.HandleFunc("/customers", ch.getAllCustomers).Methods(http.MethodGet)
-	mux.HandleFunc("/customers/{customer_id:[0-9]+}", ch.getCustomerByID).Methods(http.MethodGet)
-	mux.HandleFunc("/customers/{customer_id:[0-9]+}/accounts", ah.NewAccount).Methods(http.MethodPost)
-	mux.HandleFunc("/customers/{customer_id:[0-9]+}/accounts/{account_id:[0-9]+}", ah.MakeTransaction).Methods(http.MethodPost)
-
-	mux.Use(authMiddleware)
-
-	// * starting the server
-
-=======
 	// * defining routes
 	// mux.HandleFunc("/auth/login", authH.Login).Methods(http.MethodPost)
 
@@ -129,7 +98,6 @@ func Start() {
 	adminR.Use(isAdminMiddleware)
 
 	// * starting the server
->>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 	serverAddr := os.Getenv("SERVER_ADDRESS")
 	serverPort := os.Getenv("SERVER_PORT")
 
@@ -164,15 +132,6 @@ func loggingMiddleware(next http.Handler) http.Handler {
 
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-<<<<<<< HEAD
-		token := r.Header.Get("Authorization")
-
-		// split token -> ambil tokennya buang "Bearer" nya
-		// parsing token, err := jwt.Parse()
-		// Check token validation
-
-		logger.Info(token)
-=======
 
 		// get token from header
 		authorizationHeader := r.Header.Get("Authorization")
@@ -255,7 +214,6 @@ func isAdminMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
->>>>>>> c10f03cd41226d7095285e2635a29eef01f73db9
 		next.ServeHTTP(w, r)
 	})
 }
